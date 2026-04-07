@@ -30,7 +30,7 @@ export default function Header() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold italic tracking-tighter">
-            AgriManage <span className="font-light text-green-300 underline">Pro</span>
+            TaniLog
           </h1>
           <p className="text-[10px] opacity-80 uppercase mt-1">{currentDate}</p>
         </div>
