@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AgriManage',
-  description: 'AgriManage Log Pertanian',
+  title: 'TaniLog',
+  description: 'Sistem manajemen pertanian terpadu untuk pencatatan log rawat lahan dan akuntansi keuangan tani secara offline.',
   generator: 'v0.app',
   icons: {
     icon: [
