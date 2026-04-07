@@ -1,0 +1,128 @@
+'use client';
+
+import { useState } from 'react';
+import { useAppStore } from '@/lib/store';
+import ModalForm from './modal-form';
+import { isFuture, parseISO, format } from 'date-fns';
+import { id } from 'date-fns/locale';
+
+export default function LogAktivitas() {
+  const { logs, addLog, updateLog, deleteLog } = useAppStore();
+  const [showModal, setShowModal] = useState(false);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    activity: '',
+    category: 'Lahan',
+    note: '',
+    date: new Date().toISOString().split('T')[0],
+  });
+
+  const handleOpenModal = () => {
+    setEditIndex(null);
+    setFormData({
+      activity: '',
+      category: 'Lahan',
+      note: '',
+      date: new Date().toISOString().split('T')[0],
+    });
+    setShowModal(true);
+  };
+
+  const handleEditItem = (index: number) => {
+    setEditIndex(index);
+    setFormData({ ...logs[index] });
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    if (!formData.activity) return;
+
+    if (editIndex !== null) {
+      updateLog(editIndex, formData);
+    } else {
+      addLog(formData);
+    }
+    setShowModal(false);
+  };
+
+  const isTodo = (dateString: string) => {
+    try {
+      return isFuture(parseISO(dateString));
+    } catch {
+      return false;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), 'd MMM yyyy', { locale: id });
+    } catch {
+      return dateString;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xs font-black text-gray-400 uppercase">Log Aktivitas Lahan</h2>
+        <button
+          onClick={handleOpenModal}
+          className="bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-md hover:bg-green-700 transition-colors"
+        >
+          + Aktivitas
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {logs.map((log, index) => (
+          <div key={index} className="bg-white border rounded-xl p-4 shadow-sm relative group">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-green-600 uppercase">
+                  {log.category}
+                </span>
+                {isTodo(log.date) && (
+                  <span className="text-[8px] font-black bg-orange-100 text-orange-600 px-2 py-0.5 rounded uppercase">
+                    TODO
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEditItem(index)}
+                  className="text-blue-500 text-[10px] font-bold uppercase hover:text-blue-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteLog(index)}
+                  className="text-red-400 text-[10px] font-bold uppercase hover:text-red-500"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+            <p className="text-sm font-bold text-gray-800">{log.activity}</p>
+            {log.note && <p className="text-xs text-gray-500 mt-1">{log.note}</p>}
+            <p className="text-[9px] text-gray-300 mt-2">{formatDate(log.date)}</p>
+          </div>
+        ))}
+        {logs.length === 0 && (
+          <div className="text-center py-8 text-gray-400">
+            <p className="text-sm">Belum ada aktivitas tercatat</p>
+          </div>
+        )}
+      </div>
+
+      <ModalForm
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleSave}
+        formData={formData}
+        setFormData={setFormData}
+        modalType="log"
+        isEditing={editIndex !== null}
+      />
+    </div>
+  );
+}
