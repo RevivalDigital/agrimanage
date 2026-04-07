@@ -57,6 +57,7 @@ export default function ModalForm({
                 <option value="Pemupukan">Pemupukan / Kompos</option>
                 <option value="Perawatan">Penyiraman/Pruning</option>
                 <option value="Hama">Pestisida Organik</option>
+                <option value="Lainnya">Lainnya</option>
               </select>
             </div>
             <div>
