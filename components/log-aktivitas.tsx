@@ -5,9 +5,13 @@ import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
 import { isFuture, parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useToast } from '@/lib/use-toast';
+import { usePagination } from '@/lib/use-pagination';
 
 export default function LogAktivitas() {
   const { logs, addLog, updateLog, deleteLog } = useAppStore();
+  const { toast } = useToast();
+  const pagination = usePagination(logs.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -61,6 +65,22 @@ export default function LogAktivitas() {
     }
   };
 
+  const handleDelete = (index: number) => {
+    const log = logs[index];
+    toast({
+      title: 'Konfirmasi Hapus',
+      description: `Hapus aktivitas "${log.activity}"?`,
+      action: (
+        <button
+          onClick={() => deleteLog(index)}
+          className="text-red-600 font-bold text-xs"
+        >
+          Hapus
+        </button>
+      ),
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -74,7 +94,9 @@ export default function LogAktivitas() {
       </div>
 
       <div className="space-y-3">
-        {logs.map((log, index) => (
+        {logs.slice(pagination.startIndex, pagination.endIndex).map((log, idx) => {
+          const index = pagination.startIndex + idx;
+          return (
           <div key={index} className="bg-white border rounded-xl p-4 shadow-sm relative group">
             <div className="flex justify-between items-start mb-2">
               <div className="flex items-center gap-2">
@@ -95,7 +117,7 @@ export default function LogAktivitas() {
                   Edit
                 </button>
                 <button
-                  onClick={() => deleteLog(index)}
+                  onClick={() => handleDelete(index)}
                   className="text-red-400 text-[10px] font-bold uppercase hover:text-red-500"
                 >
                   Hapus
@@ -106,13 +128,36 @@ export default function LogAktivitas() {
             {log.note && <p className="text-xs text-gray-500 mt-1">{log.note}</p>}
             <p className="text-[9px] text-gray-300 mt-2">{formatDate(log.date)}</p>
           </div>
-        ))}
+          );
+        })}
         {logs.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">Belum ada aktivitas tercatat</p>
           </div>
         )}
       </div>
+
+      {logs.length > 10 && (
+        <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
+          <button
+            onClick={pagination.prevPage}
+            disabled={pagination.currentPage === 1}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            ← Sebelumnya
+          </button>
+          <span className="text-xs font-bold text-gray-500">
+            {pagination.currentPage} / {pagination.totalPages}
+          </span>
+          <button
+            onClick={pagination.nextPage}
+            disabled={pagination.currentPage === pagination.totalPages}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            Selanjutnya →
+          </button>
+        </div>
+      )}
 
       <ModalForm
         isOpen={showModal}

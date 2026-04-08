@@ -15,9 +15,20 @@ interface Transaction {
   date: string;
 }
 
+interface UtangPiutang {
+  description: string;
+  amount: number;
+  paid: number;
+  type: 'utang' | 'piutang';
+  party: string;
+  date: string;
+  status: 'lunas' | 'belum_lunas';
+}
+
 interface AppState {
   logs: Log[];
   transactions: Transaction[];
+  utangPiutang: UtangPiutang[];
   balance: number;
   addLog: (log: Log) => void;
   updateLog: (index: number, log: Log) => void;
@@ -25,6 +36,10 @@ interface AppState {
   addTransaction: (transaction: Transaction) => void;
   updateTransaction: (index: number, transaction: Transaction) => void;
   deleteTransaction: (index: number) => void;
+  addUtangPiutang: (item: UtangPiutang) => void;
+  updateUtangPiutang: (index: number, item: UtangPiutang) => void;
+  deleteUtangPiutang: (index: number) => void;
+  payPartialUtangPiutang: (index: number, amount: number) => void;
   calculateBalance: () => void;
   clearAllData: () => void;
 }
@@ -34,6 +49,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       logs: [],
       transactions: [],
+      utangPiutang: [],
       balance: 0,
 
       addLog: (log) => {
@@ -96,6 +112,40 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      addUtangPiutang: (item) => {
+        set((state) => ({
+          utangPiutang: [item, ...state.utangPiutang],
+        }));
+      },
+
+      updateUtangPiutang: (index, item) => {
+        set((state) => {
+          const newUtangPiutang = [...state.utangPiutang];
+          newUtangPiutang[index] = item;
+          return { utangPiutang: newUtangPiutang };
+        });
+      },
+
+      deleteUtangPiutang: (index) => {
+        set((state) => ({
+          utangPiutang: state.utangPiutang.filter((_, i) => i !== index),
+        }));
+      },
+
+      payPartialUtangPiutang: (index, amount) => {
+        set((state) => {
+          const newUtangPiutang = [...state.utangPiutang];
+          const item = newUtangPiutang[index];
+          const newPaid = Math.min(item.paid + amount, item.amount);
+          newUtangPiutang[index] = {
+            ...item,
+            paid: newPaid,
+            status: newPaid >= item.amount ? 'lunas' : 'belum_lunas',
+          };
+          return { utangPiutang: newUtangPiutang };
+        });
+      },
+
       calculateBalance: () => {
         set((state) => {
           const newBalance = state.transactions.reduce((acc, curr) => {
@@ -109,6 +159,7 @@ export const useAppStore = create<AppState>()(
         set({
           logs: [],
           transactions: [],
+          utangPiutang: [],
           balance: 0,
         });
       },

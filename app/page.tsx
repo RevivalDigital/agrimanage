@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/header';
 import Navigation from '@/components/navigation';
+import Dashboard from '@/components/dashboard';
 import LogAktivitas from '@/components/log-aktivitas';
 import BukuKas from '@/components/buku-kas';
+import UtangPiutang from '@/components/utang-piutang';
 import Pengaturan from '@/components/pengaturan';
 
 export default function Home() {
-  const [tab, setTab] = useState<'perawatan' | 'akuntansi' | 'settings'>('perawatan');
+  const [tab, setTab] = useState<'dashboard' | 'perawatan' | 'akuntansi' | 'utang_piutang' | 'settings'>('dashboard');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,8 +25,10 @@ export default function Home() {
       <Navigation tab={tab} setTab={setTab} />
       
       <main className="flex-grow p-4 pb-24">
+        {tab === 'dashboard' && <Dashboard />}
         {tab === 'perawatan' && <LogAktivitas />}
         {tab === 'akuntansi' && <BukuKas />}
+        {tab === 'utang_piutang' && <UtangPiutang />}
         {tab === 'settings' && <Pengaturan />}
       </main>
     </div>

@@ -1,14 +1,16 @@
 'use client';
 
 interface NavigationProps {
-  tab: 'perawatan' | 'akuntansi' | 'settings';
-  setTab: (tab: 'perawatan' | 'akuntansi' | 'settings') => void;
+  tab: 'dashboard' | 'perawatan' | 'akuntansi' | 'utang_piutang' | 'settings';
+  setTab: (tab: 'dashboard' | 'perawatan' | 'akuntansi' | 'utang_piutang' | 'settings') => void;
 }
 
 export default function Navigation({ tab, setTab }: NavigationProps) {
   const tabs = [
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'perawatan', label: 'Rawat' },
     { id: 'akuntansi', label: 'Keuangan' },
+    { id: 'utang_piutang', label: 'Utang' },
     { id: 'settings', label: 'Sistem' },
   ] as const;
 

@@ -5,9 +5,13 @@ import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useToast } from '@/lib/use-toast';
+import { usePagination } from '@/lib/use-pagination';
 
 export default function BukuKas() {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useAppStore();
+  const { toast } = useToast();
+  const pagination = usePagination(transactions.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -61,6 +65,22 @@ export default function BukuKas() {
     }
   };
 
+  const handleDelete = (index: number) => {
+    const trx = transactions[index];
+    toast({
+      title: 'Konfirmasi Hapus',
+      description: `Hapus transaksi "${trx.item}"?`,
+      action: (
+        <button
+          onClick={() => deleteTransaction(index)}
+          className="text-red-600 font-bold text-xs"
+        >
+          Hapus
+        </button>
+      ),
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -74,7 +94,9 @@ export default function BukuKas() {
       </div>
 
       <div className="space-y-2">
-        {transactions.map((trx, index) => (
+        {transactions.slice(pagination.startIndex, pagination.endIndex).map((trx, idx) => {
+          const index = pagination.startIndex + idx;
+          return (
           <div
             key={index}
             className="bg-white border rounded-lg p-3 shadow-sm flex items-center justify-between"
@@ -100,7 +122,7 @@ export default function BukuKas() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteTransaction(index)}
+                    onClick={() => handleDelete(index)}
                     className="text-red-300 hover:text-red-400"
                   >
                     Hapus
@@ -116,13 +138,36 @@ export default function BukuKas() {
               {trx.type === 'out' ? '-' : '+'} {formatIDR(trx.amount)}
             </p>
           </div>
-        ))}
+          );
+        })}
         {transactions.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">Belum ada transaksi tercatat</p>
           </div>
         )}
       </div>
+
+      {transactions.length > 10 && (
+        <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
+          <button
+            onClick={pagination.prevPage}
+            disabled={pagination.currentPage === 1}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            ← Sebelumnya
+          </button>
+          <span className="text-xs font-bold text-gray-500">
+            {pagination.currentPage} / {pagination.totalPages}
+          </span>
+          <button
+            onClick={pagination.nextPage}
+            disabled={pagination.currentPage === pagination.totalPages}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            Selanjutnya →
+          </button>
+        </div>
+      )}
 
       <ModalForm
         isOpen={showModal}
