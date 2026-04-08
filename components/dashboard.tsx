@@ -118,7 +118,7 @@ export default function Dashboard() {
             <p className={`text-lg font-bold mt-1 ${balance >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
               {formatIDR(balance)}
             </p>
-            <p className="text-[8px] text-blue-500 mt-1">
+            <p className="text-[10px] text-blue-500 mt-1">
               Netto: {formatIDR(netBalance)}
             </p>
           </div>
