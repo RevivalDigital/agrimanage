@@ -17,16 +17,17 @@ export default function PaymentModal({
 }: PaymentModalProps) {
   const { utangPiutang, payPartialUtangPiutang } = useAppStore();
   const { toast } = useToast();
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState('');
 
   if (!isOpen || !utangPiutang[itemIndex]) return null;
 
   const item = utangPiutang[itemIndex];
   const remaining = item.amount - item.paid;
+  const numAmount = parseFloat(amount) || 0;
 
   const handlePayment = () => {
-    if (amount <= 0) return;
-    if (amount > remaining) {
+    if (numAmount <= 0) return;
+    if (numAmount > remaining) {
       toast({
         title: 'Jumlah Melebihi',
         description: `Jumlah pembayaran tidak boleh melebihi Rp ${remaining.toLocaleString('id-ID')}`,
@@ -34,12 +35,12 @@ export default function PaymentModal({
       return;
     }
 
-    payPartialUtangPiutang(itemIndex, amount);
+    payPartialUtangPiutang(itemIndex, numAmount);
     toast({
       title: 'Pembayaran Berhasil',
-      description: `${item.type === 'utang' ? 'Bayar' : 'Terima'} Rp ${amount.toLocaleString('id-ID')}`,
+      description: `${item.type === 'utang' ? 'Bayar' : 'Terima'} Rp ${numAmount.toLocaleString('id-ID')}`,
     });
-    setAmount(0);
+    setAmount('');
     onClose();
   };
 
@@ -88,15 +89,18 @@ export default function PaymentModal({
               type="number"
               placeholder={`Maksimal ${remaining.toLocaleString('id-ID')}`}
               value={amount}
-              onChange={(e) => setAmount(Math.min(parseFloat(e.target.value) || 0, remaining))}
+              onChange={(e) => {
+                const val = e.target.value === '' ? '' : Math.min(parseFloat(e.target.value) || 0, remaining).toString();
+                setAmount(val);
+              }}
               className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
             />
           </div>
 
-          {amount > 0 && (
+          {numAmount > 0 && (
             <div className="bg-purple-50 rounded-lg p-3">
               <p className="text-[9px] font-bold text-purple-600 uppercase">Sisa Setelah Pembayaran</p>
-              <p className="text-sm font-bold text-purple-700 mt-1">{formatIDR(remaining - amount)}</p>
+              <p className="text-sm font-bold text-purple-700 mt-1">{formatIDR(remaining - numAmount)}</p>
             </div>
           )}
         </div>
@@ -110,7 +114,7 @@ export default function PaymentModal({
           </button>
           <button
             onClick={handlePayment}
-            disabled={amount <= 0}
+            disabled={numAmount <= 0}
             className="flex-[2] bg-purple-600 text-white py-4 rounded-2xl font-bold text-sm uppercase shadow-lg shadow-purple-200 hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {item.type === 'utang' ? 'Bayar Sekarang' : 'Konfirmasi Terima'}
