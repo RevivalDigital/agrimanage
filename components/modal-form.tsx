@@ -8,7 +8,7 @@ interface ModalFormProps {
   onSave: () => void;
   formData: any;
   setFormData: Dispatch<SetStateAction<any>>;
-  modalType: 'log' | 'finance';
+  modalType: 'log' | 'finance' | 'utang_piutang';
   isEditing: boolean;
 }
 
@@ -143,6 +143,105 @@ export default function ModalForm({
                 }
                 className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-blue-500"
               />
+            </div>
+          </div>
+        )}
+
+        {modalType === 'utang_piutang' && (
+          <div className="space-y-4">
+            <div className="flex p-1 bg-gray-100 rounded-xl">
+              <button
+                onClick={() => setFormData({ ...formData, type: 'utang' })}
+                className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${
+                  formData.type === 'utang'
+                    ? 'bg-white shadow text-red-600'
+                    : 'text-gray-400'
+                }`}
+              >
+                Utang
+              </button>
+              <button
+                onClick={() => setFormData({ ...formData, type: 'piutang' })}
+                className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${
+                  formData.type === 'piutang'
+                    ? 'bg-white shadow text-blue-600'
+                    : 'text-gray-400'
+                }`}
+              >
+                Piutang
+              </button>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Deskripsi Transaksi</label>
+              <input
+                type="text"
+                placeholder="Deskripsi transaksi..."
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Nama Pihak (Pemberi/Penerima)</label>
+              <input
+                type="text"
+                placeholder="Nama pihak..."
+                value={formData.party}
+                onChange={(e) =>
+                  setFormData({ ...formData, party: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Nominal Rp</label>
+              <input
+                type="number"
+                placeholder="Nominal Rp"
+                value={formData.amount}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Tanggal</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Status</label>
+              <div className="flex p-1 bg-gray-100 rounded-xl">
+                <button
+                  onClick={() => setFormData({ ...formData, status: 'belum_lunas' })}
+                  className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${
+                    formData.status === 'belum_lunas'
+                      ? 'bg-white shadow text-yellow-600'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  Belum Lunas
+                </button>
+                <button
+                  onClick={() => setFormData({ ...formData, status: 'lunas' })}
+                  className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${
+                    formData.status === 'lunas'
+                      ? 'bg-white shadow text-green-600'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  Lunas
+                </button>
+              </div>
             </div>
           </div>
         )}
