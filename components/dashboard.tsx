@@ -41,11 +41,11 @@ export default function Dashboard() {
 
   const totalUtang = utangPiutang
     .filter((item) => item.type === 'utang')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
   const totalPiutang = utangPiutang
     .filter((item) => item.type === 'piutang')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
   // Calculate net balance (including utang/piutang)
   const netBalance = balance - totalUtang + totalPiutang;
@@ -143,13 +143,13 @@ export default function Dashboard() {
 
           {/* Total Utang */}
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
-            <p className="text-[9px] font-black text-orange-600 uppercase">Total Utang</p>
+            <p className="text-[9px] font-black text-orange-600 uppercase">Utang (Sisa)</p>
             <p className="text-lg font-bold text-orange-700 mt-2">{formatIDR(totalUtang)}</p>
           </div>
 
           {/* Total Piutang */}
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4">
-            <p className="text-[9px] font-black text-purple-600 uppercase">Total Piutang</p>
+            <p className="text-[9px] font-black text-purple-600 uppercase">Piutang (Sisa)</p>
             <p className="text-lg font-bold text-purple-700 mt-2">{formatIDR(totalPiutang)}</p>
           </div>
         </div>

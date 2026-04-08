@@ -182,13 +182,20 @@ export default function UtangPiutang() {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <p
-                className={`font-mono text-sm font-bold ${
-                  item.type === 'utang' ? 'text-red-600' : 'text-blue-600'
-                }`}
-              >
-                {formatIDR(item.amount)}
-              </p>
+              <div className="text-right">
+                <p
+                  className={`font-mono text-sm font-bold ${
+                    item.type === 'utang' ? 'text-red-600' : 'text-blue-600'
+                  }`}
+                >
+                  {formatIDR(item.amount - item.paid)}
+                </p>
+                {item.paid > 0 && (
+                  <p className="text-[8px] text-gray-400 mt-0.5">
+                    (Dp: {formatIDR(item.paid)})
+                  </p>
+                )}
+              </div>
               <div className="flex gap-1 flex-wrap justify-end">
                 {item.status === 'belum_lunas' && (
                   <button
