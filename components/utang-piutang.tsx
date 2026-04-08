@@ -7,10 +7,12 @@ import PaymentModal from './payment-modal';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { useToast } from '@/lib/use-toast';
+import { usePagination } from '@/lib/use-pagination';
 
 export default function UtangPiutang() {
   const { utangPiutang, addUtangPiutang, updateUtangPiutang, deleteUtangPiutang } = useAppStore();
   const { toast } = useToast();
+  const pagination = usePagination(utangPiutang.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentIndex, setPaymentIndex] = useState<number | null>(null);
@@ -125,7 +127,8 @@ export default function UtangPiutang() {
       </div>
 
       <div className="space-y-2">
-        {utangPiutang.map((item, index) => (
+        {utangPiutang.slice(pagination.startIndex, pagination.endIndex).map((item, idx) => {
+          const index = pagination.startIndex + idx;
           <div
             key={index}
             className="bg-white border rounded-lg p-3 shadow-sm flex items-center justify-between"
@@ -209,13 +212,35 @@ export default function UtangPiutang() {
               </div>
             </div>
           </div>
-        ))}
+        })}
         {utangPiutang.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">Belum ada data utang atau piutang</p>
           </div>
         )}
       </div>
+
+      {utangPiutang.length > 10 && (
+        <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
+          <button
+            onClick={pagination.prevPage}
+            disabled={pagination.currentPage === 1}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            ← Sebelumnya
+          </button>
+          <span className="text-xs font-bold text-gray-500">
+            {pagination.currentPage} / {pagination.totalPages}
+          </span>
+          <button
+            onClick={pagination.nextPage}
+            disabled={pagination.currentPage === pagination.totalPages}
+            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+          >
+            Selanjutnya →
+          </button>
+        </div>
+      )}
 
       <ModalForm
         isOpen={showModal}
