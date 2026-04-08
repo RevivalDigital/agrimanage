@@ -96,6 +96,7 @@ export default function BukuKas() {
       <div className="space-y-2">
         {transactions.slice(pagination.startIndex, pagination.endIndex).map((trx, idx) => {
           const index = pagination.startIndex + idx;
+          return (
           <div
             key={index}
             className="bg-white border rounded-lg p-3 shadow-sm flex items-center justify-between"
@@ -137,6 +138,7 @@ export default function BukuKas() {
               {trx.type === 'out' ? '-' : '+'} {formatIDR(trx.amount)}
             </p>
           </div>
+          );
         })}
         {transactions.length === 0 && (
           <div className="text-center py-8 text-gray-400">

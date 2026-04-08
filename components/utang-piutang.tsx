@@ -129,6 +129,7 @@ export default function UtangPiutang() {
       <div className="space-y-2">
         {utangPiutang.slice(pagination.startIndex, pagination.endIndex).map((item, idx) => {
           const index = pagination.startIndex + idx;
+          return (
           <div
             key={index}
             className="bg-white border rounded-lg p-3 shadow-sm flex items-center justify-between"
@@ -212,6 +213,7 @@ export default function UtangPiutang() {
               </div>
             </div>
           </div>
+          );
         })}
         {utangPiutang.length === 0 && (
           <div className="text-center py-8 text-gray-400">
