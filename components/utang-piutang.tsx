@@ -13,10 +13,12 @@ export default function UtangPiutang() {
   const { utangPiutang, addUtangPiutang, updateUtangPiutang, deleteUtangPiutang } = useAppStore();
   const { toast } = useToast();
   const pagination = usePagination(utangPiutang.length, 10);
+
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentIndex, setPaymentIndex] = useState<number | null>(null);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
@@ -26,6 +28,8 @@ export default function UtangPiutang() {
     date: new Date().toISOString().split('T')[0],
     status: 'belum_lunas' as 'lunas' | 'belum_lunas',
   });
+
+  // --- HANDLERS ---
 
   const handleOpenModal = () => {
     setEditIndex(null);
@@ -50,10 +54,16 @@ export default function UtangPiutang() {
   const handleSave = () => {
     if (!formData.description || !formData.party || formData.amount <= 0) return;
 
+    // Sinkronisasi status otomatis saat simpan/edit manual
+    const finalData = {
+      ...formData,
+      status: formData.paid >= formData.amount ? 'lunas' : 'belum_lunas'
+    };
+
     if (editIndex !== null) {
-      updateUtangPiutang(editIndex, formData);
+      updateUtangPiutang(editIndex, finalData as any);
     } else {
-      addUtangPiutang(formData);
+      addUtangPiutang(finalData as any);
     }
     setShowModal(false);
   };
@@ -79,6 +89,8 @@ export default function UtangPiutang() {
     setShowPaymentModal(true);
   };
 
+  // --- UTILS ---
+
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -95,162 +107,145 @@ export default function UtangPiutang() {
     }
   };
 
-  const totalUtang = utangPiutang
+  // Hitung sisa saldo (Bukan total kotor)
+  const totalUtangNet = utangPiutang
     .filter((item) => item.type === 'utang')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
-  const totalPiutang = utangPiutang
+  const totalPiutangNet = utangPiutang
     .filter((item) => item.type === 'piutang')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xs font-black text-gray-400 uppercase">Utang & Piutang</h2>
+        <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest">Utang & Piutang</h2>
         <button
           onClick={handleOpenModal}
-          className="bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-md hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95"
         >
-          + Catat
+          + Catat Baru
         </button>
       </div>
 
+      {/* Ringkasan Dashboard */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-[9px] font-black text-red-600 uppercase">Total Utang</p>
-          <p className="text-sm font-bold text-red-700 mt-1">{formatIDR(totalUtang)}</p>
+        <div className="bg-red-50 border border-red-100 rounded-xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-red-500 uppercase">Sisa Utang</p>
+          <p className="text-sm font-bold text-red-700 mt-1">{formatIDR(totalUtangNet)}</p>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-[9px] font-black text-blue-600 uppercase">Total Piutang</p>
-          <p className="text-sm font-bold text-blue-700 mt-1">{formatIDR(totalPiutang)}</p>
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-blue-500 uppercase">Sisa Piutang</p>
+          <p className="text-sm font-bold text-blue-700 mt-1">{formatIDR(totalPiutangNet)}</p>
         </div>
       </div>
 
+      {/* List Item */}
       <div className="space-y-2">
         {utangPiutang.slice(pagination.startIndex, pagination.endIndex).map((item, idx) => {
-          const index = pagination.startIndex + idx;
+          const actualIndex = pagination.startIndex + idx;
+          const remaining = item.amount - item.paid;
+          const progress = Math.min((item.paid / item.amount) * 100, 100);
+
           return (
-          <div
-            key={index}
-            className="bg-white border rounded-lg p-3 shadow-sm flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-[9px] ${
-                  item.type === 'utang'
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-blue-100 text-blue-600'
+            <div
+              key={actualIndex}
+              className={`bg-white border rounded-xl p-3 shadow-sm flex items-center justify-between border-l-4 ${item.type === 'utang' ? 'border-l-red-500' : 'border-l-blue-500'
                 }`}
-              >
-                {item.type === 'utang' ? 'UT' : 'PT'}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold">{item.description}</p>
-                <div className="flex gap-2 text-[9px] text-gray-400 font-bold uppercase">
-                  <span>{item.party}</span>
-                  <span>•</span>
-                  <span>{formatDate(item.date)}</span>
-                </div>
-                <div className="flex gap-2 text-[9px] mt-1">
-                  <span
-                    className={`px-2 py-0.5 rounded font-bold ${
-                      item.status === 'lunas'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-9 h-9 flex items-center justify-center rounded-full font-black text-[10px] ${item.type === 'utang' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
                     }`}
-                  >
+                >
+                  {item.type === 'utang' ? 'UT' : 'PT'}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800">{item.description}</p>
+                  <div className="flex gap-2 text-[9px] text-gray-400 font-bold uppercase mt-0.5">
+                    <span>{item.party}</span>
+                    <span>•</span>
+                    <span>{formatDate(item.date)}</span>
+                  </div>
+
+                  {/* Progress Pembayaran */}
+                  <div className="mt-2 w-32">
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-500 ${item.status === 'lunas' ? 'bg-green-500' : 'bg-yellow-400'
+                          }`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    {item.paid > 0 && (
+                      <p className="text-[7px] text-gray-400 mt-1 font-bold">
+                        DIBAYAR: {formatIDR(item.paid)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-right">
+                  <p className={`font-mono text-sm font-bold ${item.type === 'utang' ? 'text-red-600' : 'text-blue-600'}`}>
+                    {formatIDR(remaining)}
+                  </p>
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${item.status === 'lunas' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
                     {item.status === 'lunas' ? 'LUNAS' : 'BELUM LUNAS'}
                   </span>
                 </div>
-                {item.paid > 0 && (
-                  <div className="mt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full transition-all ${
-                          item.status === 'lunas'
-                            ? 'bg-green-500'
-                            : 'bg-yellow-500'
-                        }`}
-                        style={{ width: `${(item.paid / item.amount) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-[8px] text-gray-400 mt-1">
-                      {formatIDR(item.paid)} / {formatIDR(item.amount)}
-                    </p>
-                  </div>
-                )}
+
+                <div className="flex gap-2">
+                  {item.status === 'belum_lunas' && (
+                    <button
+                      onClick={() => handleOpenPaymentModal(actualIndex)}
+                      className="text-purple-600 hover:text-purple-800 text-[10px] font-bold"
+                    >
+                      {item.type === 'utang' ? 'Bayar' : 'Terima'}
+                    </button>
+                  )}
+                  <button onClick={() => handleEditItem(actualIndex)} className="text-blue-500 text-[10px] font-bold">Edit</button>
+                  <button onClick={() => handleDelete(actualIndex)} className="text-red-300 text-[10px] font-bold">Hapus</button>
+                </div>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="text-right">
-                <p
-                  className={`font-mono text-sm font-bold ${
-                    item.type === 'utang' ? 'text-red-600' : 'text-blue-600'
-                  }`}
-                >
-                  {formatIDR(item.amount - item.paid)}
-                </p>
-                {item.paid > 0 && (
-                  <p className="text-[8px] text-gray-400 mt-0.5">
-                    (Dp: {formatIDR(item.paid)})
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-1 flex-wrap justify-end">
-                {item.status === 'belum_lunas' && (
-                  <button
-                    onClick={() => handleOpenPaymentModal(index)}
-                    className="text-purple-500 hover:text-purple-600 text-[9px] font-bold"
-                  >
-                    {item.type === 'utang' ? 'Bayar' : 'Terima'}
-                  </button>
-                )}
-                <button
-                  onClick={() => handleEditItem(index)}
-                  className="text-blue-400 hover:text-blue-500 text-[9px] font-bold"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(index)}
-                  className="text-red-300 hover:text-red-400 text-[9px] font-bold"
-                >
-                  Hapus
-                </button>
-              </div>
-            </div>
-          </div>
           );
         })}
+
         {utangPiutang.length === 0 && (
-          <div className="text-center py-8 text-gray-400">
-            <p className="text-sm">Belum ada data utang atau piutang</p>
+          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+            <p className="text-gray-400 text-sm font-medium">Belum ada catatan utang/piutang</p>
           </div>
         )}
       </div>
 
+      {/* Pagination Controls */}
       {utangPiutang.length > 10 && (
-        <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
+        <div className="flex items-center justify-between bg-white border rounded-xl p-3 shadow-sm">
           <button
             onClick={pagination.prevPage}
             disabled={pagination.currentPage === 1}
-            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+            className="px-4 py-1.5 text-[10px] font-black uppercase bg-gray-50 text-gray-400 rounded-lg disabled:opacity-30 hover:bg-gray-100 transition-colors"
           >
-            ← Sebelumnya
+            ← Prev
           </button>
-          <span className="text-xs font-bold text-gray-500">
+          <span className="text-[10px] font-black text-gray-400 tracking-widest">
             {pagination.currentPage} / {pagination.totalPages}
           </span>
           <button
             onClick={pagination.nextPage}
             disabled={pagination.currentPage === pagination.totalPages}
-            className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+            className="px-4 py-1.5 text-[10px] font-black uppercase bg-gray-50 text-gray-400 rounded-lg disabled:opacity-30 hover:bg-gray-100 transition-colors"
           >
-            Selanjutnya →
+            Next →
           </button>
         </div>
       )}
 
+      {/* Modals */}
       <ModalForm
         isOpen={showModal}
         onClose={() => setShowModal(false)}
@@ -267,7 +262,7 @@ export default function UtangPiutang() {
           setShowPaymentModal(false);
           setPaymentIndex(null);
         }}
-        itemIndex={paymentIndex || 0}
+        itemIndex={paymentIndex ?? -1}
       />
     </div>
   );
