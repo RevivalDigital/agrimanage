@@ -47,6 +47,9 @@ export default function Dashboard() {
     .filter((item) => item.type === 'piutang')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
+  // Calculate net balance (including utang/piutang)
+  const netBalance = balance - totalUtang + totalPiutang;
+
   const totalUtangLunas = utangPiutang
     .filter((item) => item.type === 'utang' && item.status === 'lunas')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -89,6 +92,16 @@ export default function Dashboard() {
     { name: 'Belum Lunas', value: totalPiutang - totalPiutangLunas },
   ];
 
+  // Get upcoming activities (next 7 days)
+  const today = new Date();
+  const next7Days = new Date(today);
+  next7Days.setDate(next7Days.getDate() + 7);
+
+  const upcomingLogs = logs.filter((log) => {
+    const logDate = new Date(log.date);
+    return logDate >= today && logDate <= next7Days;
+  });
+
   const COLORS = ['#10b981', '#fbbf24'];
 
   return (
@@ -102,8 +115,11 @@ export default function Dashboard() {
           {/* Balance Card */}
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
             <p className="text-[9px] font-black text-blue-600 uppercase">Saldo</p>
-            <p className={`text-lg font-bold mt-2 ${balance >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+            <p className={`text-lg font-bold mt-1 ${balance >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
               {formatIDR(balance)}
+            </p>
+            <p className="text-[8px] text-blue-500 mt-1">
+              Netto: {formatIDR(netBalance)}
             </p>
           </div>
 
@@ -138,6 +154,30 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Todo List - Upcoming Activities */}
+      {upcomingLogs.length > 0 && (
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="text-xs font-bold text-gray-600 uppercase mb-3">To-Do List</h3>
+          <div className="space-y-2">
+            {upcomingLogs.slice(0, 5).map((log, idx) => (
+              <div key={idx} className="flex gap-2 items-start p-2 bg-blue-50 rounded border border-blue-100">
+                <div className="w-4 h-4 rounded-full border-2 border-blue-400 flex-shrink-0 mt-1" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-gray-700">{log.activity}</p>
+                  <p className="text-[8px] text-gray-400 mt-0.5">
+                    {new Date(log.date).toLocaleDateString('id-ID', {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="space-y-6">
