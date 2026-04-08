@@ -3,16 +3,22 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
+import PaymentModal from './payment-modal';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useToast } from '@/lib/use-toast';
 
 export default function UtangPiutang() {
   const { utangPiutang, addUtangPiutang, updateUtangPiutang, deleteUtangPiutang } = useAppStore();
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentIndex, setPaymentIndex] = useState<number | null>(null);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
+    paid: 0,
     type: 'utang' as 'utang' | 'piutang',
     party: '',
     date: new Date().toISOString().split('T')[0],
@@ -24,6 +30,7 @@ export default function UtangPiutang() {
     setFormData({
       description: '',
       amount: 0,
+      paid: 0,
       type: 'utang',
       party: '',
       date: new Date().toISOString().split('T')[0],
@@ -47,6 +54,27 @@ export default function UtangPiutang() {
       addUtangPiutang(formData);
     }
     setShowModal(false);
+  };
+
+  const handleDelete = (index: number) => {
+    const item = utangPiutang[index];
+    toast({
+      title: 'Konfirmasi Hapus',
+      description: `Hapus "${item.description}" dari ${item.party}?`,
+      action: (
+        <button
+          onClick={() => deleteUtangPiutang(index)}
+          className="text-red-600 font-bold text-xs"
+        >
+          Hapus
+        </button>
+      ),
+    });
+  };
+
+  const handleOpenPaymentModal = (index: number) => {
+    setPaymentIndex(index);
+    setShowPaymentModal(true);
   };
 
   const formatIDR = (val: number) => {
@@ -112,7 +140,7 @@ export default function UtangPiutang() {
               >
                 {item.type === 'utang' ? 'UT' : 'PT'}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-bold">{item.description}</p>
                 <div className="flex gap-2 text-[9px] text-gray-400 font-bold uppercase">
                   <span>{item.party}</span>
@@ -130,6 +158,23 @@ export default function UtangPiutang() {
                     {item.status === 'lunas' ? 'LUNAS' : 'BELUM LUNAS'}
                   </span>
                 </div>
+                {item.paid > 0 && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${
+                          item.status === 'lunas'
+                            ? 'bg-green-500'
+                            : 'bg-yellow-500'
+                        }`}
+                        style={{ width: `${(item.paid / item.amount) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-[8px] text-gray-400 mt-1">
+                      {formatIDR(item.paid)} / {formatIDR(item.amount)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -140,7 +185,15 @@ export default function UtangPiutang() {
               >
                 {formatIDR(item.amount)}
               </p>
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap justify-end">
+                {item.status === 'belum_lunas' && (
+                  <button
+                    onClick={() => handleOpenPaymentModal(index)}
+                    className="text-purple-500 hover:text-purple-600 text-[9px] font-bold"
+                  >
+                    {item.type === 'utang' ? 'Bayar' : 'Terima'}
+                  </button>
+                )}
                 <button
                   onClick={() => handleEditItem(index)}
                   className="text-blue-400 hover:text-blue-500 text-[9px] font-bold"
@@ -148,7 +201,7 @@ export default function UtangPiutang() {
                   Edit
                 </button>
                 <button
-                  onClick={() => deleteUtangPiutang(index)}
+                  onClick={() => handleDelete(index)}
                   className="text-red-300 hover:text-red-400 text-[9px] font-bold"
                 >
                   Hapus
@@ -172,6 +225,15 @@ export default function UtangPiutang() {
         setFormData={setFormData}
         modalType="utang_piutang"
         isEditing={editIndex !== null}
+      />
+
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPaymentIndex(null);
+        }}
+        itemIndex={paymentIndex || 0}
       />
     </div>
   );

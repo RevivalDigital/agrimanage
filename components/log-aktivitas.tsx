@@ -5,9 +5,11 @@ import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
 import { isFuture, parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useToast } from '@/lib/use-toast';
 
 export default function LogAktivitas() {
   const { logs, addLog, updateLog, deleteLog } = useAppStore();
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -61,6 +63,22 @@ export default function LogAktivitas() {
     }
   };
 
+  const handleDelete = (index: number) => {
+    const log = logs[index];
+    toast({
+      title: 'Konfirmasi Hapus',
+      description: `Hapus aktivitas "${log.activity}"?`,
+      action: (
+        <button
+          onClick={() => deleteLog(index)}
+          className="text-red-600 font-bold text-xs"
+        >
+          Hapus
+        </button>
+      ),
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -95,7 +113,7 @@ export default function LogAktivitas() {
                   Edit
                 </button>
                 <button
-                  onClick={() => deleteLog(index)}
+                  onClick={() => handleDelete(index)}
                   className="text-red-400 text-[10px] font-bold uppercase hover:text-red-500"
                 >
                   Hapus

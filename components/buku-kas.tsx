@@ -5,9 +5,11 @@ import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useToast } from '@/lib/use-toast';
 
 export default function BukuKas() {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useAppStore();
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -61,6 +63,22 @@ export default function BukuKas() {
     }
   };
 
+  const handleDelete = (index: number) => {
+    const trx = transactions[index];
+    toast({
+      title: 'Konfirmasi Hapus',
+      description: `Hapus transaksi "${trx.item}"?`,
+      action: (
+        <button
+          onClick={() => deleteTransaction(index)}
+          className="text-red-600 font-bold text-xs"
+        >
+          Hapus
+        </button>
+      ),
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -100,7 +118,7 @@ export default function BukuKas() {
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteTransaction(index)}
+                    onClick={() => handleDelete(index)}
                     className="text-red-300 hover:text-red-400"
                   >
                     Hapus

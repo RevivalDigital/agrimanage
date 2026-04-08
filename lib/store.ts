@@ -18,6 +18,7 @@ interface Transaction {
 interface UtangPiutang {
   description: string;
   amount: number;
+  paid: number;
   type: 'utang' | 'piutang';
   party: string;
   date: string;
@@ -38,6 +39,7 @@ interface AppState {
   addUtangPiutang: (item: UtangPiutang) => void;
   updateUtangPiutang: (index: number, item: UtangPiutang) => void;
   deleteUtangPiutang: (index: number) => void;
+  payPartialUtangPiutang: (index: number, amount: number) => void;
   calculateBalance: () => void;
   clearAllData: () => void;
 }
@@ -128,6 +130,20 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           utangPiutang: state.utangPiutang.filter((_, i) => i !== index),
         }));
+      },
+
+      payPartialUtangPiutang: (index, amount) => {
+        set((state) => {
+          const newUtangPiutang = [...state.utangPiutang];
+          const item = newUtangPiutang[index];
+          const newPaid = Math.min(item.paid + amount, item.amount);
+          newUtangPiutang[index] = {
+            ...item,
+            paid: newPaid,
+            status: newPaid >= item.amount ? 'lunas' : 'belum_lunas',
+          };
+          return { utangPiutang: newUtangPiutang };
+        });
       },
 
       calculateBalance: () => {

@@ -207,6 +207,21 @@ export default function ModalForm({
                 className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
               />
             </div>
+            {isEditing && (
+              <div>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Sudah Dibayar/Diterima (Rp)</label>
+                <input
+                  type="number"
+                  placeholder="Jumlah yang sudah dibayar/diterima..."
+                  value={formData.paid || 0}
+                  onChange={(e) =>
+                    setFormData({ ...formData, paid: Math.min(parseFloat(e.target.value) || 0, formData.amount) })
+                  }
+                  className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-purple-500"
+                />
+                <p className="text-[9px] text-gray-400 mt-1">Sisa: {formData.amount - (formData.paid || 0)}</p>
+              </div>
+            )}
             <div>
               <label className="text-xs font-bold text-gray-600 block mb-2">Tanggal</label>
               <input
