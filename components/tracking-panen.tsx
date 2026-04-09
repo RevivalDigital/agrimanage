@@ -96,6 +96,27 @@ export default function TrackingPanen() {
   const totalKg = harvests.reduce((acc, curr) => acc + curr.kg, 0);
   const totalNominal = harvests.reduce((acc, curr) => acc + curr.nominalValue, 0);
 
+  // Group harvests by crop name
+  const cropCategories = harvests.reduce(
+    (acc, curr) => {
+      const existing = acc.find((cat) => cat.cropName === curr.cropName);
+      if (existing) {
+        existing.totalKg += curr.kg;
+        existing.totalNominal += curr.nominalValue;
+        existing.count += 1;
+      } else {
+        acc.push({
+          cropName: curr.cropName,
+          totalKg: curr.kg,
+          totalNominal: curr.nominalValue,
+          count: 1,
+        });
+      }
+      return acc;
+    },
+    [] as Array<{ cropName: string; totalKg: number; totalNominal: number; count: number }>
+  );
+
   return (
     <div className="space-y-6">
       <header>
@@ -116,6 +137,36 @@ export default function TrackingPanen() {
           <p className="text-lg font-bold text-blue-700 mt-2">{formatIDR(totalNominal)}</p>
         </div>
       </div>
+
+      {/* Crop Categories */}
+      {cropCategories.length > 0 && (
+        <div>
+          <h3 className="text-[9px] font-black text-gray-600 uppercase mb-3">Kategori Tanaman</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {cropCategories.map((category) => (
+              <div
+                key={category.cropName}
+                className="bg-white border border-green-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <p className="text-xs font-bold text-gray-700 truncate">{category.cropName}</p>
+                <div className="flex justify-between items-start mt-2">
+                  <div>
+                    <p className="text-[8px] text-gray-500 uppercase font-bold">Total</p>
+                    <p className="text-sm font-bold text-green-600 mt-0.5">
+                      {category.totalKg.toLocaleString('id-ID')} kg
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] text-gray-500 uppercase font-bold">Panen</p>
+                    <p className="text-sm font-bold text-gray-700 mt-0.5">{category.count}x</p>
+                  </div>
+                </div>
+                <p className="text-[8px] text-gray-400 mt-2">{formatIDR(category.totalNominal)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Add Button */}
       <button
