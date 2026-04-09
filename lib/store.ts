@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { getFromDB, setToDB, removeFromDB } from './indexeddb';
 
 interface Log {
   activity: string;
@@ -202,6 +203,19 @@ export const useAppStore = create<AppState>()(
     {
       name: 'agri-store',
       version: 4,
+      storage: createJSONStorage(() => ({
+        getItem: async (name: string) => {
+          const data = await getFromDB(name);
+          return data ? JSON.stringify(data) : null;
+        },
+        setItem: async (name: string, value: string) => {
+          const data = JSON.parse(value);
+          await setToDB(name, data);
+        },
+        removeItem: async (name: string) => {
+          await removeFromDB(name);
+        },
+      })),
     }
   )
 );
