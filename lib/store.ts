@@ -25,10 +25,19 @@ interface UtangPiutang {
   status: 'lunas' | 'belum_lunas';
 }
 
+interface Harvest {
+  cropName: string;
+  kg: number;
+  nominalValue: number;
+  date: string;
+  notes: string;
+}
+
 interface AppState {
   logs: Log[];
   transactions: Transaction[];
   utangPiutang: UtangPiutang[];
+  harvests: Harvest[];
   balance: number;
   addLog: (log: Log) => void;
   updateLog: (index: number, log: Log) => void;
@@ -40,6 +49,9 @@ interface AppState {
   updateUtangPiutang: (index: number, item: UtangPiutang) => void;
   deleteUtangPiutang: (index: number) => void;
   payPartialUtangPiutang: (index: number, amount: number) => void;
+  addHarvest: (harvest: Harvest) => void;
+  updateHarvest: (index: number, harvest: Harvest) => void;
+  deleteHarvest: (index: number) => void;
   calculateBalance: () => void;
   clearAllData: () => void;
 }
@@ -50,6 +62,7 @@ export const useAppStore = create<AppState>()(
       logs: [],
       transactions: [],
       utangPiutang: [],
+      harvests: [],
       balance: 0,
 
       addLog: (log) => {
@@ -146,6 +159,26 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      addHarvest: (harvest) => {
+        set((state) => ({
+          harvests: [harvest, ...state.harvests],
+        }));
+      },
+
+      updateHarvest: (index, harvest) => {
+        set((state) => {
+          const newHarvests = [...state.harvests];
+          newHarvests[index] = harvest;
+          return { harvests: newHarvests };
+        });
+      },
+
+      deleteHarvest: (index) => {
+        set((state) => ({
+          harvests: state.harvests.filter((_, i) => i !== index),
+        }));
+      },
+
       calculateBalance: () => {
         set((state) => {
           const newBalance = state.transactions.reduce((acc, curr) => {
@@ -160,13 +193,14 @@ export const useAppStore = create<AppState>()(
           logs: [],
           transactions: [],
           utangPiutang: [],
+          harvests: [],
           balance: 0,
         });
       },
     }),
     {
       name: 'agri-store',
-      version: 3,
+      version: 4,
     }
   )
 );

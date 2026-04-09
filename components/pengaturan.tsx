@@ -6,7 +6,7 @@ import { id } from 'date-fns/locale';
 import React from 'react';
 
 export default function Pengaturan() {
-  const { logs, transactions, utangPiutang, clearAllData } = useAppStore();
+  const { logs, transactions, utangPiutang, harvests, clearAllData } = useAppStore();
 
   const generateBackupName = () => {
     const now = new Date();
@@ -20,7 +20,7 @@ export default function Pengaturan() {
    * Mengambil state saat ini dan mengunduhnya sebagai file JSON
    */
   const handleExport = () => {
-    const data = { logs, transactions, utangPiutang };
+    const data = { logs, transactions, utangPiutang, harvests };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
     });
@@ -51,6 +51,9 @@ export default function Pengaturan() {
           return;
         }
 
+        // Handle old backup format without harvests
+        const importedHarvests = imported.harvests || [];
+
         if (confirm('PERINGATAN: Semua data saat ini akan diganti dengan data dari file cadangan. Lanjutkan?')) {
 
           // 2. Hitung ulang balance agar state konsisten
@@ -65,9 +68,10 @@ export default function Pengaturan() {
               logs: imported.logs,
               transactions: imported.transactions,
               utangPiutang: imported.utangPiutang,
+              harvests: importedHarvests,
               balance: calculatedBalance
             },
-            version: 3 // Harus sama dengan version: 3 di store.ts
+            version: 4 // Harus sama dengan version: 4 di store.ts
           };
 
           // 4. Simpan ke LocalStorage menggunakan kunci utama store

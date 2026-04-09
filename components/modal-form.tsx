@@ -8,7 +8,7 @@ interface ModalFormProps {
   onSave: () => void;
   formData: any;
   setFormData: Dispatch<SetStateAction<any>>;
-  modalType: 'log' | 'finance' | 'utang_piutang';
+  modalType: 'log' | 'finance' | 'utang_piutang' | 'panen';
   isEditing: boolean;
 }
 
@@ -142,6 +142,72 @@ export default function ModalForm({
                   setFormData({ ...formData, date: e.target.value })
                 }
                 className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-blue-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {modalType === 'panen' && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Jenis Tanaman</label>
+              <input
+                type="text"
+                placeholder="Contoh: Padi, Jagung, Sayuran..."
+                value={formData.cropName}
+                onChange={(e) =>
+                  setFormData({ ...formData, cropName: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Berat (kg)</label>
+                <input
+                  type="number"
+                  placeholder="Kg"
+                  value={formData.kg}
+                  onChange={(e) =>
+                    setFormData({ ...formData, kg: parseFloat(e.target.value) || 0 })
+                  }
+                  className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Nominal (Rp)</label>
+                <input
+                  type="number"
+                  placeholder="Nominal"
+                  value={formData.nominalValue}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nominalValue: parseFloat(e.target.value) || 0 })
+                  }
+                  className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Tanggal Panen</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Catatan (Opsional)</label>
+              <textarea
+                placeholder="Kondisi panen, cuaca, catatan lainnya..."
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500 resize-none"
+                rows={2}
               />
             </div>
           </div>

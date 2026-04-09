@@ -6,11 +6,12 @@ import Navigation from '@/components/navigation';
 import Dashboard from '@/components/dashboard';
 import LogAktivitas from '@/components/log-aktivitas';
 import BukuKas from '@/components/buku-kas';
+import TrackingPanen from '@/components/tracking-panen';
 import UtangPiutang from '@/components/utang-piutang';
 import Pengaturan from '@/components/pengaturan';
 
 export default function Home() {
-  const [tab, setTab] = useState<'dashboard' | 'perawatan' | 'akuntansi' | 'utang_piutang' | 'settings'>('dashboard');
+  const [tab, setTab] = useState<'dashboard' | 'perawatan' | 'akuntansi' | 'panen' | 'utang_piutang' | 'settings'>('dashboard');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function Home() {
         {tab === 'dashboard' && <Dashboard />}
         {tab === 'perawatan' && <LogAktivitas />}
         {tab === 'akuntansi' && <BukuKas />}
+        {tab === 'panen' && <TrackingPanen />}
         {tab === 'utang_piutang' && <UtangPiutang />}
         {tab === 'settings' && <Pengaturan />}
       </main>
