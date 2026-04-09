@@ -4,6 +4,7 @@ import { useAppStore } from '@/lib/store';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import React from 'react';
+import { setToDB } from '@/lib/indexeddb';
 
 export default function Pengaturan() {
   const { logs, transactions, utangPiutang, harvests, clearAllData } = useAppStore();
@@ -41,7 +42,7 @@ export default function Pengaturan() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const imported = JSON.parse(e.target.result as string);
 
@@ -74,12 +75,12 @@ export default function Pengaturan() {
             version: 4 // Harus sama dengan version: 4 di store.ts
           };
 
-          // 4. Simpan ke LocalStorage menggunakan kunci utama store
-          localStorage.setItem('agri-store', JSON.stringify(zustandBackup));
+          // 4. Simpan ke IndexedDB menggunakan kunci utama store
+          await setToDB('agri-store', zustandBackup);
 
           alert('Data berhasil dipulihkan! Aplikasi akan dimuat ulang.');
 
-          // 5. Hard reload untuk memuat state baru dari LocalStorage
+          // 5. Hard reload untuk memuat state baru dari IndexedDB
           window.location.reload();
         }
       } catch (err) {
