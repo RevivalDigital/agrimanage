@@ -2,8 +2,18 @@ const DB_NAME = 'agrimanage-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'app-state';
 
+// Check if IndexedDB is available (only in browser)
+const isIndexedDBAvailable = () => {
+  return typeof window !== 'undefined' && typeof indexedDB !== 'undefined';
+};
+
 export const initDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
+    if (!isIndexedDBAvailable()) {
+      reject(new Error('IndexedDB not available'));
+      return;
+    }
+
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
@@ -24,6 +34,10 @@ export const initDB = (): Promise<IDBDatabase> => {
 };
 
 export const getFromDB = async (key: string): Promise<any> => {
+  if (!isIndexedDBAvailable()) {
+    return null;
+  }
+
   try {
     const db = await initDB();
     return new Promise((resolve, reject) => {
@@ -46,6 +60,10 @@ export const getFromDB = async (key: string): Promise<any> => {
 };
 
 export const setToDB = async (key: string, value: any): Promise<void> => {
+  if (!isIndexedDBAvailable()) {
+    return;
+  }
+
   try {
     const db = await initDB();
     return new Promise((resolve, reject) => {
@@ -67,6 +85,10 @@ export const setToDB = async (key: string, value: any): Promise<void> => {
 };
 
 export const removeFromDB = async (key: string): Promise<void> => {
+  if (!isIndexedDBAvailable()) {
+    return;
+  }
+
   try {
     const db = await initDB();
     return new Promise((resolve, reject) => {

@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 
 export default function Dashboard() {
-  const { logs, transactions, utangPiutang } = useAppStore();
+  const { logs, transactions, utangPiutang, harvests } = useAppStore();
 
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -102,6 +102,27 @@ export default function Dashboard() {
     return logDate >= today && logDate <= next7Days;
   });
 
+  // Group harvests by crop name
+  const harvestsByCategory = harvests.reduce(
+    (acc, curr) => {
+      const existing = acc.find((cat) => cat.cropName === curr.cropName);
+      if (existing) {
+        existing.totalKg += curr.kg;
+        existing.totalNominal += curr.nominalValue;
+        existing.count += 1;
+      } else {
+        acc.push({
+          cropName: curr.cropName,
+          totalKg: curr.kg,
+          totalNominal: curr.nominalValue,
+          count: 1,
+        });
+      }
+      return acc;
+    },
+    [] as Array<{ cropName: string; totalKg: number; totalNominal: number; count: number }>
+  );
+
   const COLORS = ['#10b981', '#fbbf24'];
 
   return (
@@ -173,6 +194,25 @@ export default function Dashboard() {
                     })}
                   </p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Harvest by Category */}
+      {harvestsByCategory.length > 0 && (
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="text-xs font-bold text-gray-600 uppercase mb-3">Panen per Kategori</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {harvestsByCategory.slice(0, 4).map((category) => (
+              <div
+                key={category.cropName}
+                className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3 shadow-sm"
+              >
+                <p className="text-[9px] font-bold text-green-700 uppercase truncate">{category.cropName}</p>
+                <p className="text-sm font-bold text-green-600 mt-1">{category.totalKg.toLocaleString('id-ID')} kg</p>
+                <p className="text-[8px] text-gray-500 mt-1">{category.count}x panen</p>
               </div>
             ))}
           </div>
@@ -288,7 +328,7 @@ export default function Dashboard() {
         )}
 
         {/* Empty State */}
-        {logs.length === 0 && transactions.length === 0 && utangPiutang.length === 0 && (
+        {logs.length === 0 && transactions.length === 0 && utangPiutang.length === 0 && harvests.length === 0 && (
           <div className="bg-white border rounded-lg p-8 text-center">
             <p className="text-sm text-gray-400">Mulai dengan menambahkan data untuk melihat ringkasan</p>
           </div>
