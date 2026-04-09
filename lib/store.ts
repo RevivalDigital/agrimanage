@@ -28,6 +28,7 @@ interface UtangPiutang {
 interface Harvest {
   cropName: string;
   kg: number;
+  pricePerKg: number;
   nominalValue: number;
   date: string;
   notes: string;

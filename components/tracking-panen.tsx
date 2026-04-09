@@ -33,6 +33,7 @@ export default function TrackingPanen() {
   const [formData, setFormData] = useState({
     cropName: '',
     kg: 0,
+    pricePerKg: 0,
     nominalValue: 0,
     date: new Date().toISOString().split('T')[0],
     notes: '',
@@ -43,6 +44,7 @@ export default function TrackingPanen() {
     setFormData({
       cropName: '',
       kg: 0,
+      pricePerKg: 0,
       nominalValue: 0,
       date: new Date().toISOString().split('T')[0],
       notes: '',
@@ -56,6 +58,7 @@ export default function TrackingPanen() {
     setFormData({
       cropName: harvest.cropName,
       kg: harvest.kg,
+      pricePerKg: harvest.pricePerKg,
       nominalValue: harvest.nominalValue,
       date: harvest.date,
       notes: harvest.notes,
@@ -131,10 +134,12 @@ export default function TrackingPanen() {
             key={index}
             className="bg-white border rounded-lg p-4 flex justify-between items-start gap-3"
           >
-            <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-700">{harvest.cropName}</p>
               <div className="flex gap-2 text-[9px] text-gray-400 font-bold uppercase mt-1">
                 <span>{harvest.kg.toLocaleString('id-ID')} kg</span>
+                <span>•</span>
+                <span>{formatIDR(harvest.pricePerKg)}/kg</span>
                 <span>•</span>
                 <span>{formatDate(harvest.date)}</span>
               </div>

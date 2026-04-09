@@ -168,23 +168,35 @@ export default function ModalForm({
                   type="number"
                   placeholder="Kg"
                   value={formData.kg}
-                  onChange={(e) =>
-                    setFormData({ ...formData, kg: parseFloat(e.target.value) || 0 })
-                  }
+                  onChange={(e) => {
+                    const kg = parseFloat(e.target.value) || 0;
+                    const nominal = kg * (formData.pricePerKg || 0);
+                    setFormData({ ...formData, kg, nominalValue: nominal })
+                  }}
                   className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-600 block mb-2">Nominal (Rp)</label>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Harga/kg (Rp)</label>
                 <input
                   type="number"
-                  placeholder="Nominal"
-                  value={formData.nominalValue}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nominalValue: parseFloat(e.target.value) || 0 })
-                  }
+                  placeholder="Harga per kg"
+                  value={formData.pricePerKg || ''}
+                  onChange={(e) => {
+                    const pricePerKg = parseFloat(e.target.value) || 0;
+                    const nominal = (formData.kg || 0) * pricePerKg;
+                    setFormData({ ...formData, pricePerKg, nominalValue: nominal })
+                  }}
                   className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-green-500"
                 />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 block mb-2">Total Nominal (Rp)</label>
+              <div className="w-full bg-green-50 border border-green-200 p-3 rounded-xl">
+                <p className="font-mono font-bold text-green-700">
+                  {(formData.nominalValue || 0).toLocaleString('id-ID')}
+                </p>
               </div>
             </div>
             <div>
