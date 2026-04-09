@@ -27,7 +27,9 @@ const formatDate = (dateString: string) => {
 export default function TrackingPanen() {
   const { harvests, addHarvest, updateHarvest, deleteHarvest } = useAppStore();
   const { toast } = useToast();
-  const pagination = usePagination(harvests.length, 10);
+  // Sort harvests by date (newest first)
+  const sortedHarvests = [...harvests].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pagination = usePagination(sortedHarvests.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -178,8 +180,8 @@ export default function TrackingPanen() {
 
       {/* Data List */}
       <div className="space-y-2">
-        {harvests.slice(pagination.startIndex, pagination.endIndex).map((harvest, idx) => {
-          const index = pagination.startIndex + idx;
+        {sortedHarvests.slice(pagination.startIndex, pagination.endIndex).map((harvest, idx) => {
+          const index = harvests.indexOf(harvest);
           return (
           <div
             key={index}
@@ -220,15 +222,14 @@ export default function TrackingPanen() {
           </div>
           );
         })}
-        {harvests.length === 0 && (
+        {sortedHarvests.length === 0 && (
           <div className="text-center py-8 text-gray-400">
-            <p className="text-sm">Belum ada data panen tercatat</p>
+            <p className="text-sm">Belum ada data panen</p>
           </div>
         )}
       </div>
 
-      {/* Pagination */}
-      {harvests.length > 10 && (
+      {sortedHarvests.length > 10 && (
         <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
           <button
             onClick={pagination.prevPage}

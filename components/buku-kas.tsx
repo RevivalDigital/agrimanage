@@ -11,7 +11,9 @@ import { usePagination } from '@/lib/use-pagination';
 export default function BukuKas() {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useAppStore();
   const { toast } = useToast();
-  const pagination = usePagination(transactions.length, 10);
+  // Sort transactions by date (newest first)
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pagination = usePagination(sortedTransactions.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -94,8 +96,8 @@ export default function BukuKas() {
       </div>
 
       <div className="space-y-2">
-        {transactions.slice(pagination.startIndex, pagination.endIndex).map((trx, idx) => {
-          const index = pagination.startIndex + idx;
+        {sortedTransactions.slice(pagination.startIndex, pagination.endIndex).map((trx, idx) => {
+          const index = transactions.indexOf(trx);
           return (
           <div
             key={index}
@@ -140,14 +142,14 @@ export default function BukuKas() {
           </div>
           );
         })}
-        {transactions.length === 0 && (
+        {sortedTransactions.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">Belum ada transaksi tercatat</p>
           </div>
         )}
       </div>
 
-      {transactions.length > 10 && (
+      {sortedTransactions.length > 10 && (
         <div className="flex items-center justify-between gap-2 bg-white border rounded-lg p-3">
           <button
             onClick={pagination.prevPage}

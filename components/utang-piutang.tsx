@@ -12,7 +12,9 @@ import { usePagination } from '@/lib/use-pagination';
 export default function UtangPiutang() {
   const { utangPiutang, addUtangPiutang, updateUtangPiutang, deleteUtangPiutang } = useAppStore();
   const { toast } = useToast();
-  const pagination = usePagination(utangPiutang.length, 10);
+  // Sort utang piutang by date (newest first)
+  const sortedUtangPiutang = [...utangPiutang].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const pagination = usePagination(sortedUtangPiutang.length, 10);
 
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -143,8 +145,8 @@ export default function UtangPiutang() {
 
       {/* List Item */}
       <div className="space-y-2">
-        {utangPiutang.slice(pagination.startIndex, pagination.endIndex).map((item, idx) => {
-          const actualIndex = pagination.startIndex + idx;
+        {sortedUtangPiutang.slice(pagination.startIndex, pagination.endIndex).map((item, idx) => {
+          const actualIndex = utangPiutang.indexOf(item);
           const remaining = item.amount - item.paid;
           const progress = Math.min((item.paid / item.amount) * 100, 100);
 
@@ -215,15 +217,14 @@ export default function UtangPiutang() {
           );
         })}
 
-        {utangPiutang.length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-            <p className="text-gray-400 text-sm font-medium">Belum ada catatan utang/piutang</p>
+        {sortedUtangPiutang.length === 0 && (
+          <div className="text-center py-8 text-gray-400">
+            <p className="text-sm">Belum ada data utang atau piutang</p>
           </div>
         )}
       </div>
 
-      {/* Pagination Controls */}
-      {utangPiutang.length > 10 && (
+      {sortedUtangPiutang.length > 10 && (
         <div className="flex items-center justify-between bg-white border rounded-xl p-3 shadow-sm">
           <button
             onClick={pagination.prevPage}
