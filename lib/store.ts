@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { getFromDB, setToDB, removeFromDB } from './indexeddb';
 
 interface Log {
   activity: string;
@@ -25,10 +26,20 @@ interface UtangPiutang {
   status: 'lunas' | 'belum_lunas';
 }
 
+interface Harvest {
+  cropName: string;
+  kg: number;
+  pricePerKg: number;
+  nominalValue: number;
+  date: string;
+  notes: string;
+}
+
 interface AppState {
   logs: Log[];
   transactions: Transaction[];
   utangPiutang: UtangPiutang[];
+  harvests: Harvest[];
   balance: number;
   addLog: (log: Log) => void;
   updateLog: (index: number, log: Log) => void;
@@ -40,6 +51,9 @@ interface AppState {
   updateUtangPiutang: (index: number, item: UtangPiutang) => void;
   deleteUtangPiutang: (index: number) => void;
   payPartialUtangPiutang: (index: number, amount: number) => void;
+  addHarvest: (harvest: Harvest) => void;
+  updateHarvest: (index: number, harvest: Harvest) => void;
+  deleteHarvest: (index: number) => void;
   calculateBalance: () => void;
   clearAllData: () => void;
 }
@@ -50,6 +64,7 @@ export const useAppStore = create<AppState>()(
       logs: [],
       transactions: [],
       utangPiutang: [],
+      harvests: [],
       balance: 0,
 
       addLog: (log) => {
@@ -146,6 +161,26 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      addHarvest: (harvest) => {
+        set((state) => ({
+          harvests: [harvest, ...state.harvests],
+        }));
+      },
+
+      updateHarvest: (index, harvest) => {
+        set((state) => {
+          const newHarvests = [...state.harvests];
+          newHarvests[index] = harvest;
+          return { harvests: newHarvests };
+        });
+      },
+
+      deleteHarvest: (index) => {
+        set((state) => ({
+          harvests: state.harvests.filter((_, i) => i !== index),
+        }));
+      },
+
       calculateBalance: () => {
         set((state) => {
           const newBalance = state.transactions.reduce((acc, curr) => {
@@ -160,13 +195,27 @@ export const useAppStore = create<AppState>()(
           logs: [],
           transactions: [],
           utangPiutang: [],
+          harvests: [],
           balance: 0,
         });
       },
     }),
     {
       name: 'agri-store',
-      version: 3,
+      version: 4,
+      storage: createJSONStorage(() => ({
+        getItem: async (name: string) => {
+          const data = await getFromDB(name);
+          return data ? JSON.stringify(data) : null;
+        },
+        setItem: async (name: string, value: string) => {
+          const data = JSON.parse(value);
+          await setToDB(name, data);
+        },
+        removeItem: async (name: string) => {
+          await removeFromDB(name);
+        },
+      })),
     }
   )
 );
