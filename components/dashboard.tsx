@@ -58,14 +58,14 @@ export default function Dashboard() {
     .filter((item) => item.type === 'piutang' && item.status === 'lunas')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  // Chart data - last 7 days transactions
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
+  // Chart data - last 30 days transactions
+  const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
+    date.setDate(date.getDate() - (29 - i));
     return date.toISOString().split('T')[0];
   });
 
-  const transactionsByDay = last7Days.map((date) => {
+  const transactionsByDay = last30Days.map((date) => {
     const dayTransactions = transactions.filter((t) => t.date === date);
     const inAmount = dayTransactions
       .filter((t) => t.type === 'in')
@@ -92,15 +92,17 @@ export default function Dashboard() {
     { name: 'Belum Lunas', value: totalPiutang - totalPiutangLunas },
   ];
 
-  // Get upcoming activities (next 7 days)
+  // Get upcoming activities (future dates) - sorted by nearest first
   const today = new Date();
-  const next7Days = new Date(today);
-  next7Days.setDate(next7Days.getDate() + 7);
+  today.setHours(0, 0, 0, 0);
 
-  const upcomingLogs = logs.filter((log) => {
-    const logDate = new Date(log.date);
-    return logDate >= today && logDate <= next7Days;
-  });
+  const upcomingLogs = logs
+    .filter((log) => {
+      const logDate = new Date(log.date);
+      logDate.setHours(0, 0, 0, 0);
+      return logDate >= today;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Group harvests by crop name
   const harvestsByCategory = harvests.reduce(
@@ -224,7 +226,7 @@ export default function Dashboard() {
         {/* Transaction Chart */}
         {transactions.length > 0 && (
           <div className="bg-white border rounded-lg p-4">
-            <h3 className="text-xs font-bold text-gray-600 uppercase mb-4">Transaksi 7 Hari Terakhir</h3>
+            <h3 className="text-xs font-bold text-gray-600 uppercase mb-4">Transaksi 30 Hari Terakhir</h3>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={transactionsByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
