@@ -50,13 +50,15 @@ export default function Dashboard() {
   // Calculate net balance (including utang/piutang)
   const netBalance = balance - totalUtang + totalPiutang;
 
-  const totalUtangLunas = utangPiutang
-    .filter((item) => item.type === 'utang' && item.status === 'lunas')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+  // Utang Lunas (sisa = 0)
+  const totalUtangBelumLunas = utangPiutang
+    .filter((item) => item.type === 'utang' && item.status === 'belum_lunas')
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
-  const totalPiutangLunas = utangPiutang
-    .filter((item) => item.type === 'piutang' && item.status === 'lunas')
-    .reduce((acc, curr) => acc + curr.amount, 0);
+  // Piutang Lunas (sisa = 0)
+  const totalPiutangBelumLunas = utangPiutang
+    .filter((item) => item.type === 'piutang' && item.status === 'belum_lunas')
+    .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
   // Chart data - last 30 days transactions
   const last30Days = Array.from({ length: 30 }, (_, i) => {
@@ -81,15 +83,15 @@ export default function Dashboard() {
     };
   });
 
-  // Pie chart data for utang/piutang status
+  // Pie chart data for utang/piutang status (showing lunas vs belum lunas count)
   const utangStatus = [
-    { name: 'Lunas', value: totalUtangLunas },
-    { name: 'Belum Lunas', value: totalUtang - totalUtangLunas },
+    { name: 'Lunas', value: utangPiutang.filter((item) => item.type === 'utang' && item.status === 'lunas').length },
+    { name: 'Belum Lunas', value: utangPiutang.filter((item) => item.type === 'utang' && item.status === 'belum_lunas').length },
   ];
 
   const piutangStatus = [
-    { name: 'Lunas', value: totalPiutangLunas },
-    { name: 'Belum Lunas', value: totalPiutang - totalPiutangLunas },
+    { name: 'Lunas', value: utangPiutang.filter((item) => item.type === 'piutang' && item.status === 'lunas').length },
+    { name: 'Belum Lunas', value: utangPiutang.filter((item) => item.type === 'piutang' && item.status === 'belum_lunas').length },
   ];
 
   // Get upcoming activities (future dates) - sorted by nearest first
@@ -291,9 +293,9 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-2 space-y-1 text-[9px]">
-                <p className="text-emerald-600 font-bold">Lunas: {formatIDR(totalUtangLunas)}</p>
+                <p className="text-emerald-600 font-bold">Lunas: {utangPiutang.filter((item) => item.type === 'utang' && item.status === 'lunas').length}x</p>
                 <p className="text-amber-600 font-bold">
-                  Belum: {formatIDR(totalUtang - totalUtangLunas)}
+                  Belum: {formatIDR(totalUtangBelumLunas)}
                 </p>
               </div>
             </div>
@@ -320,9 +322,9 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-2 space-y-1 text-[9px]">
-                <p className="text-emerald-600 font-bold">Lunas: {formatIDR(totalPiutangLunas)}</p>
+                <p className="text-emerald-600 font-bold">Lunas: {utangPiutang.filter((item) => item.type === 'piutang' && item.status === 'lunas').length}x</p>
                 <p className="text-amber-600 font-bold">
-                  Belum: {formatIDR(totalPiutang - totalPiutangLunas)}
+                  Belum: {formatIDR(totalPiutangBelumLunas)}
                 </p>
               </div>
             </div>
