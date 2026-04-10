@@ -133,6 +133,38 @@ export default function ModalForm({
                 className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-blue-500"
               />
             </div>
+            {formData.type === 'out' && (
+              <div>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Kategori Pengeluaran</label>
+                <select
+                  value={formData.category || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value as any })
+                  }
+                  className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-blue-500"
+                >
+                  <option value="">Pilih Kategori</option>
+                  <option value="ongkos_pekerja">Ongkos Pekerja</option>
+                  <option value="pestisida">Pestisida</option>
+                  <option value="pupuk">Pupuk</option>
+                  <option value="lainnya">Lainnya</option>
+                </select>
+              </div>
+            )}
+            {formData.type === 'in' && (
+              <div>
+                <label className="text-xs font-bold text-gray-600 block mb-2">Jenis Pemasukan</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Penjualan Padi, Subsidi, dll"
+                  value={formData.categoryName || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, categoryName: e.target.value })
+                  }
+                  className="w-full bg-gray-50 border p-3 rounded-xl outline-none focus:ring-2 ring-blue-500"
+                />
+              </div>
+            )}
             <div>
               <label className="text-xs font-bold text-gray-600 block mb-2">Tanggal</label>
               <input

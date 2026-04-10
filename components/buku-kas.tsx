@@ -20,6 +20,8 @@ export default function BukuKas() {
     item: '',
     amount: 0,
     type: 'out' as 'in' | 'out',
+    category: undefined as any,
+    categoryName: '',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -29,6 +31,8 @@ export default function BukuKas() {
       item: '',
       amount: 0,
       type: 'out',
+      category: undefined,
+      categoryName: '',
       date: new Date().toISOString().split('T')[0],
     });
     setShowModal(true);
@@ -83,6 +87,45 @@ export default function BukuKas() {
     });
   };
 
+  // Calculate totals
+  const totalIncome = transactions.filter(t => t.type === 'in').reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'out').reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Group expenses by category
+  const expensesByCategory = transactions
+    .filter(t => t.type === 'out')
+    .reduce((acc, curr) => {
+      const cat = curr.category || 'lainnya';
+      const existing = acc.find(c => c.category === cat);
+      if (existing) {
+        existing.amount += curr.amount;
+      } else {
+        acc.push({ category: cat, amount: curr.amount, count: 1 });
+      }
+      return acc;
+    }, [] as Array<{ category: string; amount: number; count: number }>);
+
+  // Group income by type
+  const incomeByType = transactions
+    .filter(t => t.type === 'in')
+    .reduce((acc, curr) => {
+      const catName = (curr as any).categoryName || 'Pemasukan Lainnya';
+      const existing = acc.find(c => c.name === catName);
+      if (existing) {
+        existing.amount += curr.amount;
+      } else {
+        acc.push({ name: catName, amount: curr.amount, count: 1 });
+      }
+      return acc;
+    }, [] as Array<{ name: string; amount: number; count: number }>);
+
+  const categoryLabels: Record<string, string> = {
+    ongkos_pekerja: 'Ongkos Pekerja',
+    pestisida: 'Pestisida',
+    pupuk: 'Pupuk',
+    lainnya: 'Lainnya',
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -94,6 +137,48 @@ export default function BukuKas() {
           + Transaksi
         </button>
       </div>
+
+      {/* Summary Cards - Pemasukan dan Pengeluaran */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+          <p className="text-[9px] font-black text-green-600 uppercase">Total Pemasukan</p>
+          <p className="text-lg font-bold text-green-700 mt-2">{formatIDR(totalIncome)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-4">
+          <p className="text-[9px] font-black text-red-600 uppercase">Total Pengeluaran</p>
+          <p className="text-lg font-bold text-red-700 mt-2">{formatIDR(totalExpense)}</p>
+        </div>
+      </div>
+
+      {/* Pemasukan Per Kategori */}
+      {incomeByType.length > 0 && (
+        <div>
+          <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Pemasukan per Jenis</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {incomeByType.map((item) => (
+              <div key={item.name} className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-3">
+                <p className="text-[9px] font-bold text-green-700 truncate">{item.name}</p>
+                <p className="text-sm font-bold text-green-600 mt-1">{formatIDR(item.amount)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pengeluaran Per Kategori */}
+      {expensesByCategory.length > 0 && (
+        <div>
+          <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Pengeluaran per Kategori</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {expensesByCategory.map((item) => (
+              <div key={item.category} className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-3">
+                <p className="text-[9px] font-bold text-red-700">{categoryLabels[item.category] || item.category}</p>
+                <p className="text-sm font-bold text-red-600 mt-1">{formatIDR(item.amount)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         {sortedTransactions.slice(pagination.startIndex, pagination.endIndex).map((trx, idx) => {
