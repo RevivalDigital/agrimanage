@@ -118,6 +118,31 @@ export default function UtangPiutang() {
     .filter((item) => item.type === 'piutang')
     .reduce((acc, curr) => acc + (curr.amount - curr.paid), 0);
 
+  // Group by party - only belum lunas
+  const utangByParty = utangPiutang
+    .filter((item) => item.type === 'utang' && item.status === 'belum_lunas')
+    .reduce((acc, curr) => {
+      const existing = acc.find((p) => p.party === curr.party);
+      if (existing) {
+        existing.total += curr.amount - curr.paid;
+      } else {
+        acc.push({ party: curr.party, total: curr.amount - curr.paid });
+      }
+      return acc;
+    }, [] as Array<{ party: string; total: number }>);
+
+  const piutangByParty = utangPiutang
+    .filter((item) => item.type === 'piutang' && item.status === 'belum_lunas')
+    .reduce((acc, curr) => {
+      const existing = acc.find((p) => p.party === curr.party);
+      if (existing) {
+        existing.total += curr.amount - curr.paid;
+      } else {
+        acc.push({ party: curr.party, total: curr.amount - curr.paid });
+      }
+      return acc;
+    }, [] as Array<{ party: string; total: number }>);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -142,6 +167,42 @@ export default function UtangPiutang() {
           <p className="text-sm font-bold text-blue-700 mt-1">{formatIDR(totalPiutangNet)}</p>
         </div>
       </div>
+
+      {/* Utang per Pemberi - Hanya yang Belum Lunas */}
+      {utangByParty.length > 0 && (
+        <div>
+          <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Utang per Pemberi</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {utangByParty.map((item) => (
+              <div
+                key={item.party}
+                className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-3 shadow-sm"
+              >
+                <p className="text-[9px] font-bold text-red-700 truncate">{item.party}</p>
+                <p className="text-sm font-bold text-red-600 mt-1">{formatIDR(item.total)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Piutang per Penerima - Hanya yang Belum Lunas */}
+      {piutangByParty.length > 0 && (
+        <div>
+          <h3 className="text-[9px] font-bold text-gray-600 uppercase mb-2">Piutang per Penerima</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {piutangByParty.map((item) => (
+              <div
+                key={item.party}
+                className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-3 shadow-sm"
+              >
+                <p className="text-[9px] font-bold text-blue-700 truncate">{item.party}</p>
+                <p className="text-sm font-bold text-blue-600 mt-1">{formatIDR(item.total)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* List Item */}
       <div className="space-y-2">
