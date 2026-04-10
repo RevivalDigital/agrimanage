@@ -13,6 +13,7 @@ interface Transaction {
   item: string;
   amount: number;
   type: 'in' | 'out';
+  category?: 'ongkos_pekerja' | 'pestisida' | 'pupuk' | 'lainnya' | 'pemasukan';
   date: string;
 }
 
