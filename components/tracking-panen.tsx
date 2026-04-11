@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
+import DeleteDialog from './delete-dialog';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useToast } from '@/lib/use-toast';
 import { usePagination } from '@/lib/use-pagination';
 
 const formatIDR = (value: number) => {
@@ -31,6 +31,10 @@ export default function TrackingPanen() {
   const sortedHarvests = [...harvests].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const pagination = usePagination(sortedHarvests.length, 10);
   const [showModal, setShowModal] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; index: number | null }>({
+    isOpen: false,
+    index: null,
+  });
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     cropName: '',
@@ -80,19 +84,7 @@ export default function TrackingPanen() {
   };
 
   const handleDelete = (index: number) => {
-    const harvest = harvests[index];
-    toast({
-      title: 'Konfirmasi Hapus',
-      description: `Hapus panen "${harvest.cropName}" (${harvest.kg}kg)?`,
-      action: (
-        <button
-          onClick={() => deleteHarvest(index)}
-          className="text-red-600 font-bold text-xs"
-        >
-          Hapus
-        </button>
-      ),
-    });
+    setDeleteDialog({ isOpen: true, index });
   };
 
   const totalKg = harvests.reduce((acc, curr) => acc + curr.kg, 0);
@@ -260,6 +252,19 @@ export default function TrackingPanen() {
         setFormData={setFormData}
         modalType="panen"
         isEditing={editIndex !== null}
+      />
+
+      <DeleteDialog
+        isOpen={deleteDialog.isOpen}
+        title="Hapus Data Panen"
+        description={
+          deleteDialog.index !== null
+            ? `Hapus panen "${harvests[deleteDialog.index]?.cropName}" (${harvests[deleteDialog.index]?.kg}kg)?`
+            : ''
+        }
+        itemName={deleteDialog.index !== null ? `${harvests[deleteDialog.index]?.cropName} (${harvests[deleteDialog.index]?.kg}kg)` : ''}
+        onConfirm={() => deleteDialog.index !== null && deleteHarvest(deleteDialog.index)}
+        onCancel={() => setDeleteDialog({ isOpen: false, index: null })}
       />
     </div>
   );

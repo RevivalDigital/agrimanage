@@ -4,19 +4,21 @@ import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
 import PaymentModal from './payment-modal';
+import DeleteDialog from './delete-dialog';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useToast } from '@/lib/use-toast';
 import { usePagination } from '@/lib/use-pagination';
 
 export default function UtangPiutang() {
   const { utangPiutang, addUtangPiutang, updateUtangPiutang, deleteUtangPiutang } = useAppStore();
-  const { toast } = useToast();
   // Sort utang piutang by date (newest first)
   const sortedUtangPiutang = [...utangPiutang].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const pagination = usePagination(sortedUtangPiutang.length, 10);
-
   const [showModal, setShowModal] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; index: number | null }>({
+    isOpen: false,
+    index: null,
+  });
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentIndex, setPaymentIndex] = useState<number | null>(null);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -71,19 +73,7 @@ export default function UtangPiutang() {
   };
 
   const handleDelete = (index: number) => {
-    const item = utangPiutang[index];
-    toast({
-      title: 'Konfirmasi Hapus',
-      description: `Hapus "${item.description}" dari ${item.party}?`,
-      action: (
-        <button
-          onClick={() => deleteUtangPiutang(index)}
-          className="text-red-600 font-bold text-xs"
-        >
-          Hapus
-        </button>
-      ),
-    });
+    setDeleteDialog({ isOpen: true, index });
   };
 
   const handleOpenPaymentModal = (index: number) => {
@@ -324,7 +314,20 @@ export default function UtangPiutang() {
           setShowPaymentModal(false);
           setPaymentIndex(null);
         }}
-        itemIndex={paymentIndex ?? -1}
+        itemIndex={paymentIndex || 0}
+      />
+
+      <DeleteDialog
+        isOpen={deleteDialog.isOpen}
+        title="Hapus Utang/Piutang"
+        description={
+          deleteDialog.index !== null
+            ? `Hapus "${utangPiutang[deleteDialog.index]?.description}" dari ${utangPiutang[deleteDialog.index]?.party}?`
+            : ''
+        }
+        itemName={deleteDialog.index !== null ? utangPiutang[deleteDialog.index]?.description || '' : ''}
+        onConfirm={() => deleteDialog.index !== null && deleteUtangPiutang(deleteDialog.index)}
+        onCancel={() => setDeleteDialog({ isOpen: false, index: null })}
       />
     </div>
   );

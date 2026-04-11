@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
+import DeleteDialog from './delete-dialog';
 import { isFuture, parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useToast } from '@/lib/use-toast';
 import { usePagination } from '@/lib/use-pagination';
 
 export default function LogAktivitas() {
@@ -16,6 +16,10 @@ export default function LogAktivitas() {
   const pagination = usePagination(sortedLogs.length, 10);
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; index: number | null }>({
+    isOpen: false,
+    index: null,
+  });
   const [formData, setFormData] = useState({
     activity: '',
     category: 'Lahan',
@@ -68,19 +72,7 @@ export default function LogAktivitas() {
   };
 
   const handleDelete = (index: number) => {
-    const log = logs[index];
-    toast({
-      title: 'Konfirmasi Hapus',
-      description: `Hapus aktivitas "${log.activity}"?`,
-      action: (
-        <button
-          onClick={() => deleteLog(index)}
-          className="text-red-600 font-bold text-xs"
-        >
-          Hapus
-        </button>
-      ),
-    });
+    setDeleteDialog({ isOpen: true, index });
   };
 
   return (
@@ -169,6 +161,19 @@ export default function LogAktivitas() {
         setFormData={setFormData}
         modalType="log"
         isEditing={editIndex !== null}
+      />
+
+      <DeleteDialog
+        isOpen={deleteDialog.isOpen}
+        title="Hapus Aktivitas"
+        description={
+          deleteDialog.index !== null
+            ? `Hapus aktivitas "${logs[deleteDialog.index]?.activity}"?`
+            : ''
+        }
+        itemName={deleteDialog.index !== null ? logs[deleteDialog.index]?.activity || '' : ''}
+        onConfirm={() => deleteDialog.index !== null && deleteLog(deleteDialog.index)}
+        onCancel={() => setDeleteDialog({ isOpen: false, index: null })}
       />
     </div>
   );

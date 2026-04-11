@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import ModalForm from './modal-form';
+import DeleteDialog from './delete-dialog';
 import { parseISO, format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { useToast } from '@/lib/use-toast';
 import { usePagination } from '@/lib/use-pagination';
 
 export default function BukuKas() {
@@ -15,6 +15,10 @@ export default function BukuKas() {
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const pagination = usePagination(sortedTransactions.length, 10);
   const [showModal, setShowModal] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; index: number | null }>({
+    isOpen: false,
+    index: null,
+  });
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     item: '',
@@ -72,19 +76,7 @@ export default function BukuKas() {
   };
 
   const handleDelete = (index: number) => {
-    const trx = transactions[index];
-    toast({
-      title: 'Konfirmasi Hapus',
-      description: `Hapus transaksi "${trx.item}"?`,
-      action: (
-        <button
-          onClick={() => deleteTransaction(index)}
-          className="text-red-600 font-bold text-xs"
-        >
-          Hapus
-        </button>
-      ),
-    });
+    setDeleteDialog({ isOpen: true, index });
   };
 
   // Calculate totals
@@ -264,6 +256,19 @@ export default function BukuKas() {
         setFormData={setFormData}
         modalType="finance"
         isEditing={editIndex !== null}
+      />
+
+      <DeleteDialog
+        isOpen={deleteDialog.isOpen}
+        title="Hapus Transaksi"
+        description={
+          deleteDialog.index !== null
+            ? `Hapus transaksi "${transactions[deleteDialog.index]?.item}"?`
+            : ''
+        }
+        itemName={deleteDialog.index !== null ? transactions[deleteDialog.index]?.item || '' : ''}
+        onConfirm={() => deleteDialog.index !== null && deleteTransaction(deleteDialog.index)}
+        onCancel={() => setDeleteDialog({ isOpen: false, index: null })}
       />
     </div>
   );
